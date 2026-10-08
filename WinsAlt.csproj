@@ -1,0 +1,69 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <!-- net10.0 (ไม่ผูก -windows): โค้ดทั้งหมดเป็น managed socket + file I/O; Windows Service เป็น no-op บน OS อื่น -->
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>WinsAlt</RootNamespace>
+    <AssemblyName>WinsAlt</AssemblyName>
+    <OutputType>Exe</OutputType>
+    <Version>1.8.1</Version>
+    <Product>WinsAlt NetBIOS Name Server</Product>
+    <AssemblyTitle>WinsAlt NetBIOS Name Server</AssemblyTitle>
+    <Description>WinsAlt - lightweight WINS (NetBIOS Name Server) replacement with an embedded dashboard</Description>
+    <!-- Program icon (Explorer, the desktop shortcut, Apps and features). Same picture as the dashboard favicon:
+         Assets/winsalt.ico is rendered from it (16 to 256 px). -->
+    <ApplicationIcon>Assets/winsalt.ico</ApplicationIcon>
+
+    <!-- UI ฝังใน exe ทั้งหมด: ปิด static web assets + ไม่ต้องสร้าง web.config (รันเป็น Service ไม่ใช่ IIS) -->
+    <StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
+    <IsTransformWebConfigDisabled>true</IsTransformWebConfigDisabled>
+
+    <!-- Native AOT: คอมไพล์เป็น native single .exe (ไม่ต้องมี .NET runtime บนเครื่องปลายทาง) -->
+    <PublishAot>true</PublishAot>
+    <SelfContained>true</SelfContained>
+    <!-- Default target; the Linux build overrides it on the command line (build-linux.sh: -r linux-x64). -->
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-x64</RuntimeIdentifier>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- Native AOT: optimise the image for throughput rather than size (the exe grows by well under 1 MB). -->
+    <OptimizationPreference>Speed</OptimizationPreference>
+    <!-- Workstation GC: name server เป็น I/O-bound + hot path ไม่ allocate - ServerGC มีแต่ทำให้ working set บวม -->
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <!-- AOT: ปิด reflection-based JSON ทั้งหมด ใช้ source-generator เท่านั้น -->
+    <JsonSerializerIsReflectionEnabledByDefault>false</JsonSerializerIsReflectionEnabledByDefault>
+
+    <!-- เปิด analyzer ของ trim/AOT/single-file ตั้งแต่ dev build (ที่ PublishAot=false) - IL2xxx/IL3xxx โผล่ทันที
+         ไม่ต้องรอ publish; และถือเป็น error เพื่อไม่ให้โค้ดที่พัง AOT หลุดเข้ามา -->
+    <IsAotCompatible>true</IsAotCompatible>
+    <!-- Minimal API: ให้ Request Delegate Generator สร้างโค้ด binding ตอน compile เสมอ (ปกติเปิดเองเฉพาะตอน
+         PublishAot=true) - dev build จึงวิ่ง code path เดียวกับ native build ไม่ใช่ reflection fallback -->
+    <EnableRequestDelegateGenerator>true</EnableRequestDelegateGenerator>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <EnableAotAnalyzer>true</EnableAotAnalyzer>
+    <EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
+    <TrimmerSingleWarn>false</TrimmerSingleWarn>
+    <WarningsAsErrors>$(WarningsAsErrors);IL2026;IL2046;IL2057;IL2067;IL2070;IL2072;IL2075;IL2087;IL2091;IL2104;IL3000;IL3050;IL3053</WarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- ทำให้รันเป็น Windows Service ได้ + ส่ง Log เข้า Windows Event Log -->
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.0" />
+    <!-- Linux: systemd service (Type=notify, readiness + stop signalling) + log format for journald -->
+    <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- ไม่ก๊อป wwwroot ไป output/publish (ฝังใน exe หมดแล้ว ไม่ต้องมีไฟล์ข้าง exe) -->
+    <Content Remove="wwwroot\**" />
+    <None Remove="wwwroot\**" />
+
+    <!-- ฝังหน้า Dashboard + Vue runtime ลงใน executable (Embedded Resource) - ไม่พึ่ง CDN -->
+    <EmbeddedResource Include="wwwroot\index.html" />
+    <EmbeddedResource Include="wwwroot\vue.global.prod.js" />
+    <EmbeddedResource Include="wwwroot\lang\*.json" />
+    <!-- ส่ง static-mappings.json ตัวอย่างไปกับ output/publish (แก้ไขได้ขณะรัน) -->
+    <Content Update="static-mappings.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,28 @@
+﻿WinsAlt: scope and limitations of use
+
+Read this before installing. By choosing "I accept" you confirm that you understand and accept these points.
+
+1. No warranty
+WinsAlt is free software under the MIT License, provided "as is", without warranty of any kind. You use it at your own risk. Test it on your network before relying on it, and keep the previous name service available until you are satisfied.
+
+2. Not a Microsoft product
+WinsAlt is an independent implementation of the NetBIOS name service (RFC 1001/1002) that WINS clients use. It is not made, supported or endorsed by Microsoft. "Windows" and "WINS" are trademarks of Microsoft Corporation.
+
+3. What it does and does not do
+- It does: name registration and lookup on UDP 137, static mappings, replication between WinsAlt servers, forwarding of unknown names to other WINS servers and DNS, and a web dashboard.
+- It does not: NetBIOS datagram (UDP 138) or session (TCP 139) service, Microsoft WINS replication (TCP 42), or browsing / domain functions.
+
+4. It needs UDP 137 to itself
+On Windows, NetBIOS over TCP/IP must be switched off on every adapter WinsAlt serves (the dashboard can do it). On Linux, Samba's nmbd must not run. This changes how this computer itself is seen on the network.
+
+5. Security is your responsibility
+- The dashboard is plain HTTP, not encrypted. Restrict who can reach it (firewall, network) and change the default password admin / admin right after installing.
+- The replication key and the API token are stored in clear text in the data folder. Only administrators should be able to read that folder.
+- Replication traffic is authenticated but not encrypted.
+- Name registration is open by default, as in WINS. Use the security settings (allowed subnets, blocked names, limits) that suit your network.
+
+6. Data
+Registered names, settings and the password hash are kept in the data folder. Back it up. Uninstalling keeps it unless you delete it.
+
+7. Platforms
+Tested on Windows 10 and 11, Debian 13, Ubuntu 24.04 and 26.04, and CentOS Stream 10. It may run elsewhere, without any assurance.

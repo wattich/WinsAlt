@@ -1,0 +1,81 @@
+# nfpm.yaml - describes the .deb and .rpm packages (built by build-linux.sh with nfpm, https://nfpm.goreleaser.com).
+#
+# The package does not lay the program out itself: it unpacks the same files as the .tar.gz into
+# /usr/lib/winsalt and runs install.sh --packaged, so a package install, an upgrade from the .tar.gz and a
+# manual install all end up identical (/opt/winsalt, /var/lib/winsalt, /etc/systemd/system/winsalt.service).
+# ${VERSION} and ${STAGE} are filled in by build-linux.sh. Every file has an explicit mode: the sources come from
+# /mnt/f in WSL, where everything reads as 0777.
+name: winsalt
+arch: amd64
+platform: linux
+version: ${VERSION}
+release: 1
+section: net
+priority: optional
+maintainer: wattich <93505205+wattich@users.noreply.github.com>
+vendor: wattich
+license: MIT
+description: |-
+  WINS replacement: NetBIOS name server (RFC 1001/1002, UDP 137) with a web dashboard.
+  Registrations, static mappings, replication between WinsAlt servers, forwarding to other
+  WINS servers and a DNS fallback, in one native binary run as a systemd service.
+
+depends:
+  - systemd
+  - curl
+overrides:
+  deb:
+    depends:
+      - systemd
+      - curl
+      - iproute2
+      - libssl3t64 | libssl3
+  rpm:
+    depends:
+      - systemd
+      - curl
+      - iproute
+      - openssl-libs
+
+contents:
+  - src: ${STAGE}/winsalt
+    dst: /usr/lib/winsalt/winsalt
+    file_info: { mode: 0755 }
+  - src: ${STAGE}/install.sh
+    dst: /usr/lib/winsalt/install.sh
+    file_info: { mode: 0755 }
+  - src: ${STAGE}/uninstall.sh
+    dst: /usr/lib/winsalt/uninstall.sh
+    file_info: { mode: 0755 }
+  - src: ${STAGE}/appsettings.json
+    dst: /usr/lib/winsalt/appsettings.json
+    file_info: { mode: 0644 }
+  - src: ${STAGE}/static-mappings.json
+    dst: /usr/lib/winsalt/static-mappings.json
+    file_info: { mode: 0644 }
+  - src: ${STAGE}/winsalt.service
+    dst: /usr/lib/winsalt/winsalt.service
+    file_info: { mode: 0644 }
+  - src: ${STAGE}/LICENSE
+    dst: /usr/share/doc/winsalt/LICENSE
+    file_info: { mode: 0644 }
+  - src: ${STAGE}/THIRD-PARTY-NOTICES.md
+    dst: /usr/share/doc/winsalt/THIRD-PARTY-NOTICES.md
+    file_info: { mode: 0644 }
+  - src: ${STAGE}/usage-terms.en.txt
+    dst: /usr/share/doc/winsalt/usage-terms.en.txt
+    file_info: { mode: 0644 }
+  - src: ${STAGE}/usage-terms.th.txt
+    dst: /usr/share/doc/winsalt/usage-terms.th.txt
+    file_info: { mode: 0644 }
+  - src: ${STAGE}/INSTALL.md
+    dst: /usr/share/doc/winsalt/INSTALL.md
+    file_info: { mode: 0644 }
+  - src: ${STAGE}/INSTALL.th.md
+    dst: /usr/share/doc/winsalt/INSTALL.th.md
+    file_info: { mode: 0644 }
+
+scripts:
+  postinstall: ${STAGE}/package/postinstall.sh
+  preremove: ${STAGE}/package/preremove.sh
+  postremove: ${STAGE}/package/postremove.sh
