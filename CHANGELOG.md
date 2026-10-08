@@ -5,6 +5,13 @@
 เวอร์ชัน 1.0.0-1.1.4 ออกในวันที่ 2026-10-05, ตั้งแต่ 1.2.0 ออกในวันที่ 2026-10-06 ทุกเวอร์ชันผ่าน `tools\nbns-smoke.ps1`
 บน Native AOT exe; ตั้งแต่ 1.1.0 ผ่าน `tools\replication-smoke.ps1` และตั้งแต่ 1.3.0 ผ่าน `tools\security-smoke.ps1` ด้วย
 
+## 1.8.2 (2026-10-08)
+
+- **ชื่อ server ใน tab ของ browser**: title เป็น `<ชื่อ server> - WinsAlt` (เช่น `WINS-LINUX - WinsAlt`) ชื่อขึ้นก่อนเพื่อให้แยก tab ได้แม้ tab แคบ
+  และแสดงชื่อ server ใต้คำว่า WinsAlt ที่มุมซ้ายบนของหน้า; `/api/info` (เปิดโดยไม่ต้องเข้าระบบ) ส่ง `server` เพิ่ม = ชื่อเดียวกับที่ประกาศผ่าน
+  NetBIOS (ตัดส่วน domain ออก) จึงไม่ได้เปิดเผยอะไรเพิ่ม; `security-smoke` ตรวจค่านี้
+- ถอนผ่านแพ็กเกจ: ข้อความท้ายบอกวิธีลบข้อมูลที่ถูกต้อง (`apt purge winsalt` หรือ `rm -rf /var/lib/winsalt`) แทน `--purge` ของ uninstall.sh
+
 ## 1.8.1 (2026-10-08)
 
 **ไอคอนโปรแกรม, แพ็กเกจ .deb / .rpm, คู่มือติดตั้ง, ไฟล์สำหรับ GitHub release**

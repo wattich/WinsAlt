@@ -327,7 +327,7 @@
             <span class="name">WinsAlt</span>
             <span class="pill-on" v-if="!locked" :class="{ 'pill-off': !serving }" :title="servingTitle">{{ serving ? t('app.on') : t('app.off') }}</span>
           </div>
-          <div class="sub">{{ t('app.sub') }}</div>
+          <div class="sub" :title="t('app.sub')">{{ info && info.server ? info.server : t('app.sub') }}</div>
         </div>
       </div>
       <div class="nav" role="tablist">
@@ -1115,6 +1115,10 @@ createApp({
     }
   },
   methods: {
+    // Browser tab: the server's name first, so tabs of several servers can be told apart even when narrow.
+    setTitle() {
+      document.title = this.info && this.info.server ? this.info.server + ' - WinsAlt' : 'WinsAlt - NetBIOS Name Server';
+    },
     // ---------- language ----------
     // A key's text in the chosen language, else English, else the key itself (a missing key stays visible).
     // {0}, {1} ... are replaced by the arguments. Help texts are arrays of lines.
@@ -1506,7 +1510,7 @@ createApp({
           if (info.startedAt !== before) {
             clearInterval(this.restart.timer);
             this.restart.state = '';
-            this.info = info; this.offline = ''; this.settings = null; this.firewall = null;
+            this.info = info; this.setTitle(); this.offline = ''; this.settings = null; this.firewall = null;
             await this.checkMe();                       // the new process knows no sessions
             this.poll();
             return;
@@ -1575,7 +1579,7 @@ createApp({
   async mounted() {
     document.addEventListener('click', () => { this.userMenu = false; });
     await this.initLanguage();
-    try { this.info = await this.api('/info'); await this.checkMe(); }
+    try { this.info = await this.api('/info'); this.setTitle(); await this.checkMe(); }
     catch (e) { this.failed(e); }
     await this.poll();
     setInterval(() => this.poll(), 2000);

@@ -4,6 +4,6 @@
 # The data in /var/lib/winsalt is kept; "apt purge winsalt" removes it (postremove).
 set -e
 case "${1:-}" in
-  remove|0) /usr/lib/winsalt/uninstall.sh || true ;;
+  remove|0) /usr/lib/winsalt/uninstall.sh --packaged || true ;;
 esac
 exit 0

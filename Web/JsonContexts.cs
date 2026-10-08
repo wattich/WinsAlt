@@ -12,7 +12,9 @@ namespace WinsAlt.Web;
 // StartedAt (unix seconds) identifies this run of the process: the page uses it to see that a restart has happened.
 /// <summary>Public (no sign-in). Listener = the NBNS listener's state only ("Active", "Error", ...) - the installer's
 /// final check reads it here because /api/status needs a sign-in by default.</summary>
-public record InfoResponse(string Version, string Name, long StartedAt, string Listener = "");
+/// <summary>Public (the sign-in page needs it). <c>Server</c> = this machine's name, for the browser tab title; the
+/// same name the server announces over NetBIOS anyway, so telling it to anonymous visitors gives nothing away.</summary>
+public record InfoResponse(string Version, string Name, long StartedAt, string Listener = "", string Server = "");
 public record ErrorResponse(string Error);
 /// <summary>
 /// Who is looking at the dashboard. Admin = may change things (signed in, or presenting the API

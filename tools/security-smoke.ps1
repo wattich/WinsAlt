@@ -128,6 +128,10 @@ try {
     $probe = Start-Process -FilePath $Exe -ArgumentList "--listener-state", "$($d.Dash)" -Wait -PassThru -NoNewWindow
     Check "the installer's listener check works without signing in (/api/info says Active, --listener-state exits 0)" (
         (Invoke-RestMethod "$($d.Api)/info").listener -eq "Active" -and $probe.ExitCode -eq 0) "exit=$($probe.ExitCode)"
+    # the browser tab shows the server's name: /api/info tells it without signing in (short name, no domain part)
+    $infoServer = (Invoke-RestMethod "$($d.Api)/info").server
+    Check "/api/info names the server for the tab title, without signing in" (
+        $infoServer -eq ([Environment]::MachineName.Split('.')[0].ToUpperInvariant())) "server='$infoServer'"
 
     Check "ordinary registration still works (RCODE 0)" ((Rcode $d (New-Request 5 "PC-OK" "10.50.0.1")) -eq 0)
     Check "WPAD cannot be registered (RCODE 5, refused)" ((Rcode $d (New-Request 5 "wpad" "10.50.0.66")) -eq 5)

@@ -134,11 +134,13 @@ public static class ApiEndpoints
         var api = app.MapGroup("/api");
 
         // ----- Read-only -----
-        api.MapGet("/info", (NbnsServer server) =>
+        api.MapGet("/info", (NbnsServer server, SelfRegistrationService self) =>
         {
             var v = Assembly.GetExecutingAssembly().GetName().Version;
+            // A Linux host name may be a full DNS name ("wins-linux.example.lan"): the tab only needs the first label.
+            var host = self.Name.Split('.')[0];
             return Results.Ok(new InfoResponse(v is null ? "1.0.0" : $"{v.Major}.{v.Minor}.{v.Build}", "WinsAlt NetBIOS Name Server", ProcessStartedAt,
-                server.State.ToString()));
+                server.State.ToString(), host));
         });
 
         // ----- Dashboard languages (public: the sign-in dialog needs them) -----
