@@ -74,6 +74,36 @@ sudo ./install.sh          # --no-firewall: leave ufw / firewalld alone; --no-st
 The result is the same as with a package: program in `/opt/winsalt`, data in `/var/lib/winsalt`,
 service `winsalt`, logs with `journalctl -u winsalt -f`.
 
+### Firewall on Linux
+
+The installer only works with a firewall that is **already switched on**: it then opens UDP 137, TCP 8138 and the
+dashboard port in it. It never installs or switches on a firewall itself, because doing so could cut off SSH or
+other services on the machine. Ubuntu and Debian ship ufw switched off; CentOS Stream ships firewalld switched on.
+
+With no active firewall, the dashboard's Settings page says "No active firewall manager": nothing on the server
+blocks WinsAlt, but nothing else is blocked either. To switch ufw on (before or after installing WinsAlt), and
+**always allow SSH first**:
+
+```bash
+sudo ufw allow OpenSSH
+sudo ufw allow 137/udp  comment 'WinsAlt NBNS (UDP 137)'
+sudo ufw allow 8138/tcp comment 'WinsAlt replication (TCP 8138)'
+sudo ufw allow 8137/tcp comment 'WinsAlt dashboard'
+sudo ufw enable
+```
+
+With firewalld:
+
+```bash
+sudo firewall-cmd --permanent --add-service=ssh
+sudo firewall-cmd --permanent --add-port=137/udp --add-port=8138/tcp --add-port=8137/tcp
+sudo systemctl enable --now firewalld && sudo firewall-cmd --reload
+```
+
+Within 10 seconds the Settings page shows the firewall and each port as Allowed; its Allow / Remove buttons manage
+the rules from then on. Use the dashboard port the installer reported if it is not 8137. The comments above are the
+ones WinsAlt uses itself, so uninstalling WinsAlt removes those ufw rules again.
+
 ## 3. First sign-in
 
 1. Open the dashboard: `http://<server address>:8137` (or the port the installer reported).
@@ -126,7 +156,7 @@ using it.
 | What you see | What to check |
 |---|---|
 | Name server "not listening" | Windows: NetBIOS over TCP/IP is still on for that adapter (step 3). Linux: `nmbd` or another program holds UDP 137 (`ss -ulpn 'sport = :137'`). |
-| Dashboard does not open from another computer | The firewall on the server (dashboard port), or "Open the dashboard to other computers" is off in Settings. |
+| Dashboard does not open from another computer | The firewall on the server (dashboard port, see "Firewall on Linux"), or "Open the dashboard to other computers" is off in Settings. |
 | Clients do not register | DHCP option 044, a firewall between client and server (UDP 137), or the registration policy in Settings. |
 | Cannot sign in at all | Delete `auth.json` in the data folder and restart the service: the sign-in is admin / admin again. |
 

@@ -74,6 +74,34 @@ sudo ./install.sh          # --no-firewall: ไม่แตะ ufw / firewalld; 
 ผลเหมือนการติดตั้งจาก package: โปรแกรมอยู่ที่ `/opt/winsalt` ข้อมูลอยู่ที่ `/var/lib/winsalt`
 service ชื่อ `winsalt` ดู log ด้วย `journalctl -u winsalt -f`
 
+### Firewall บน Linux
+
+ตัวติดตั้งเปิด port ให้ (UDP 137, TCP 8138 และ port ของ dashboard) **เฉพาะเมื่อ firewall เปิดอยู่แล้ว** ตัวติดตั้งไม่ติดตั้งหรือเปิด
+firewall ให้เอง เพราะอาจตัด SSH หรือ service อื่นบนเครื่อง Ubuntu และ Debian มี ufw มาแต่ปิดไว้ ส่วน CentOS Stream เปิด firewalld ไว้
+
+ถ้าไม่มี firewall เปิดอยู่ หน้า Settings ของ dashboard จะขึ้นว่า "No active firewall manager" หมายถึงตัว server ไม่ได้กั้น WinsAlt
+แต่ก็ไม่ได้กั้นอย่างอื่นด้วย วิธีเปิด ufw (ทำก่อนหรือหลังติดตั้ง WinsAlt ก็ได้) **ต้องอนุญาต SSH ก่อนเสมอ**
+
+```bash
+sudo ufw allow OpenSSH
+sudo ufw allow 137/udp  comment 'WinsAlt NBNS (UDP 137)'
+sudo ufw allow 8138/tcp comment 'WinsAlt replication (TCP 8138)'
+sudo ufw allow 8137/tcp comment 'WinsAlt dashboard'
+sudo ufw enable
+```
+
+ถ้าใช้ firewalld
+
+```bash
+sudo firewall-cmd --permanent --add-service=ssh
+sudo firewall-cmd --permanent --add-port=137/udp --add-port=8138/tcp --add-port=8137/tcp
+sudo systemctl enable --now firewalld && sudo firewall-cmd --reload
+```
+
+ภายใน 10 วินาที หน้า Settings จะแสดง firewall และแต่ละ port เป็น Allowed จากนั้นใช้ปุ่ม Allow / Remove ในหน้านั้นจัดการต่อได้
+ถ้า port ของ dashboard ไม่ใช่ 8137 ให้ใช้ port ที่ตัวติดตั้งแจ้ง comment ข้างบนเป็นชื่อเดียวกับที่ WinsAlt ใช้ เมื่อถอน WinsAlt
+rule ของ ufw เหล่านี้จะถูกลบให้ด้วย
+
 ## 3. เข้าระบบครั้งแรก
 
 1. เปิด dashboard ที่ `http://<ที่อยู่ server>:8137` (หรือ port ที่ตัวติดตั้งแจ้ง)
