@@ -108,10 +108,11 @@
     /* ============ Hero metric tiles ============ */
     .tile { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; overflow: hidden; box-shadow: var(--shadow); }
     .tile.has-spark { padding-bottom: 0; }
-    .tile-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+    /* wraps: a long value (uptime in Thai: "16 ชม. 28 นาที") pushes the tag to the next line instead of out of the tile */
+    .tile-top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 8px; }
     .tile-val { font-size: 26px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; white-space: nowrap; }
     .tile-val small { font-size: 15px; font-weight: 600; color: var(--text-dim); }
-    .tile-tag { font-size: 12px; font-weight: 600; color: var(--text-dim); font-variant-numeric: tabular-nums; text-align: right; }
+    .tile-tag { font-size: 12px; font-weight: 600; color: var(--text-dim); font-variant-numeric: tabular-nums; text-align: right; margin-left: auto; }
     .tile-label { font-size: 12px; font-weight: 600; color: var(--text-dim); margin: 0 0 8px; white-space: nowrap; }
     .tile-sub { font-size: 11px; color: var(--text-faint); margin-top: 8px; }
     .spark { display: block; width: calc(100% + 32px); height: 40px; margin: 8px -16px 0; }
@@ -151,6 +152,8 @@
     /* A group can list up to 25 addresses: let that one cell wrap instead of pushing columns out of view. */
     td.addrs { white-space: normal; max-width: 330px; }
     td.wrapcell { white-space: normal; min-width: 260px; }
+    /* Text columns that may wrap, so a wide table (longer Thai labels) fits the panel and the action column stays in view. */
+    td.soft { white-space: normal; min-width: 90px; }
     .dim { color: var(--text-dim); }
     .faint { color: var(--text-faint); }
 
@@ -434,9 +437,9 @@
             <thead><tr><th>{{ t('nb.adapter') }}</th><th>{{ t('col.address') }}</th><th>{{ t('nb.netbios') }}</th><th class="ta-r">{{ t('col.manage') }}</th></tr></thead>
             <tbody>
               <tr v-for="a in netbt.adapters" :key="a.id">
-                <td><span class="name">{{ a.name }}</span> <span class="faint">{{ a.description }}</span></td>
+                <td class="soft"><span class="name">{{ a.name }}</span> <span class="faint">{{ a.description }}</span></td>
                 <td class="mono">{{ a.addresses.join(', ') }}</td>
-                <td><span class="badge" :class="a.enabled ? 'b-warn' : 'b-active'"><span class="dot"></span>{{ a.enabled ? t('nb.on') : t('nb.off') }}</span>
+                <td class="soft"><span class="badge" :class="a.enabled ? 'b-warn' : 'b-active'"><span class="dot"></span>{{ a.enabled ? t('nb.on') : t('nb.off') }}</span>
                   <span class="faint" v-if="a.setting === 'Default'"> {{ t('nb.default') }}</span></td>
                 <td class="ta-r"><button v-if="canEdit" class="btn btn-sm" @click="askNetbt(a)"><svg class="ic" aria-hidden="true"><use href="#ic-power"/></svg>{{ a.enabled ? t('nb.turnOff') : t('nb.turnOn') }}</button></td>
               </tr>
@@ -545,13 +548,13 @@
           <tbody>
             <tr v-for="r in (names ? names.items : [])" :key="r.source + r.id">
               <td class="name">{{ r.name }}</td>
-              <td><span class="chip chip-grey">{{ r.suffix }}</span> <span class="dim">{{ has('suffix.' + r.suffix) ? t('suffix.' + r.suffix) : r.role }}</span></td>
+              <td class="soft"><span class="chip chip-grey">{{ r.suffix }}</span> <span class="dim">{{ has('suffix.' + r.suffix) ? t('suffix.' + r.suffix) : r.role }}</span></td>
               <td class="mono addrs">{{ r.addresses.join(', ') }}</td>
-              <td><span class="chip" :class="sourceChip(r.source)">{{ tv('source.', r.source) }}</span>
+              <td class="soft"><span class="chip" :class="sourceChip(r.source)">{{ tv('source.', r.source) }}</span>
                 <span class="faint" v-if="r.origin"> {{ r.source === 'Partner' ? t('names.via', r.origin) : t('names.from', r.origin) }}</span></td>
-              <td>{{ r.isStatic ? t('kind.Static') : tv('kind.', r.kind) }} <span class="faint" v-if="!r.isStatic && r.source !== 'Partner'">{{ r.nodeType }}</span>
+              <td class="soft">{{ r.isStatic ? t('kind.Static') : tv('kind.', r.kind) }} <span class="faint" v-if="!r.isStatic && r.source !== 'Partner'">{{ r.nodeType }}</span>
                 <span class="faint" v-if="r.comment">({{ r.comment }})</span></td>
-              <td :title="r.expiresAt ? dateTime(r.expiresAt) : ''">{{ r.expiresAt ? t('names.in', duration(r.expiresAt - now())) : t('common.never') }}</td>
+              <td class="soft" :title="r.expiresAt ? dateTime(r.expiresAt) : ''">{{ r.expiresAt ? t('names.in', duration(r.expiresAt - now())) : t('common.never') }}</td>
               <td class="ta-r"><div class="row-actions">
                 <button v-if="canEdit && !r.isStatic && r.source === 'Local'" class="icon-btn danger" @click="askRemoveName(r)" :aria-label="t('names.remove')" :title="t('names.remove')"><svg class="ic" aria-hidden="true"><use href="#ic-trash"/></svg></button>
               </div></td>
